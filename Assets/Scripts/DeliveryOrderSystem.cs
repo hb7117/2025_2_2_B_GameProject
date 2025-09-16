@@ -1,33 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class DeliveryOrderSystem : MonoBehaviour
 {
-    [Header("ÁÖ¹® ¼³Á¤")]
-    public float ordergenratelnterval = 15f;                  //ÁÖ¹® »ý¼º½Ã°£
-    public int maxActiveOrders = 8;                           //ÃÖ´ë ÁÖ¹® ¼ýÀÚ
+    [Header("ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½")]
+    public float ordergenrateInterval = 15f;                            //ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½
+    public int maxActiveOrders = 8;                                     //ï¿½Ö´ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-    [Header("°ÔÀÓ »óÅÂ")]
-    public int totalOrderGenerated = 0;
+    [Header("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½")]
+    public int totalOrdersGenerated = 0;
     public int completedOrders = 0;
     public int expiredOrders = 0;
 
-    //ÁÖ¹® ¸®½ºÆ®
-    private List<DeliveryOrder> currentOrders = new List<DeliveryOrder>();
+    //ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+    public List<DeliveryOrder> currentOrders = new List<DeliveryOrder>();
 
-    //Builing ÂüÁ¶
-    private List<Building> restaurants = new List<Building>();
-    private List<Building> customers = new List<Building>();
+    //Builing ï¿½ï¿½ï¿½ï¿½
+    public List<Building> restaurants = new List<Building>();
+    public List<Building> customers = new List<Building>();
 
-    //Event ½Ã½ºÅÛ
+    //Event ï¿½Ã½ï¿½ï¿½ï¿½
     [System.Serializable]
     public class OrderSystemEvents
     {
         public UnityEvent<DeliveryOrder> OnNewOrderAdded;
-        public UnityEvent<DeliveryOrder> OnOrderPickUp;
+        public UnityEvent<DeliveryOrder> OnOrderPickedUp;
         public UnityEvent<DeliveryOrder> OnOrderCompleted;
         public UnityEvent<DeliveryOrder> OnOrderExpired;
     }
@@ -35,10 +34,22 @@ public class DeliveryOrderSystem : MonoBehaviour
     public OrderSystemEvents orderEvents;
     private DeliveryDriver driver;
 
+
+
+    // Start is called before the first frame update
     void Start()
     {
-        FindAllBuilding();                       //°Ç¹° ÃÊ±â ¼ÂÆÃ
+        driver = FindObjectOfType<DeliveryDriver>();
+        FindAllBuilding();                                                              //ï¿½Ç¹ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½
+
+        //ï¿½Ê±ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
+        StartCoroutine(GenerateInitialOrders());
+        //ï¿½Ö±ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
+        StartCoroutine(orderGenerator());
+        //ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
+        StartCoroutine(ExpiredOrderChecker());
     }
+
 
     void FindAllBuilding()
     {
@@ -52,59 +63,59 @@ public class DeliveryOrderSystem : MonoBehaviour
             }
             else if(building.BuildingType == BuildingType.Customer)
             {
-                customers.Add(building);
+                customers.Add(building);    
             }
         }
 
-        Debug.Log($"À½½ÄÁ¡ {restaurants.Count}°³ , °í°´ {customers.Count} °³ ¹ß°ß");
+        Debug.Log($"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ {restaurants.Count}ï¿½ï¿½ , ï¿½ï¿½ï¿½ï¿½ {customers.Count} ï¿½ï¿½ ï¿½ß°ï¿½");
     }
 
-    void CreateNewOrdwe()
+    void CreateNewOrder()
     {
-        if (restaurants.Count == 0 || customers.Count == 0) return;
+        if(restaurants.Count == 0 ||  customers.Count == 0) return;
 
-        //·£´ý À½½ÄÁ¡°ú °í°´ ¼±ÅÃ
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Building randomRestaurant = restaurants[Random.Range(0, restaurants.Count)];
-        Building randomCusromer = customers[Random.Range(0, customers.Count)];
+        Building randomCustomer = customers[Random.Range(0, customers.Count)];
 
-        //°°Àº °Ç¹°ÀÌ¸é ´Ù½Ã ¼±ÅÃ
-        if (randomRestaurant == randomCusromer)
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¹ï¿½ï¿½Ì¸ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        if (randomRestaurant == randomCustomer)
         {
-            randomCusromer = customers[Random.Range(0, customers.Count)];
+            randomCustomer = customers[Random.Range(0, customers.Count)];
         }
 
         float reward = Random.Range(3000f, 8000f);
 
-        DeliveryOrder newOrder = new DeliveryOrder(++totalOrderGenerated, randomRestaurant, randomCusromer, reward);
+        DeliveryOrder newOrder = new DeliveryOrder(++totalOrdersGenerated,randomRestaurant,randomCustomer,reward);
 
         currentOrders.Add(newOrder);
         orderEvents.OnNewOrderAdded?.Invoke(newOrder);
 
-        void PickupOrder(DeliveryOrder order)                       //ÇÈ¾÷ ÇÔ¼ö
-        {
-            order.state = OrderState.PickedUp;
-            orderEvents.OnOrderPickUp?.Invoke(order);
-        }
-
-        void CompleteOrder(DeliveryOrder order)                     //¹è´Þ ¿Ï·á ÇÔ¼ö
-        {
-            order.state = OrderState.Completed;
-            completedOrders++;
-
-            //º¸»ó Áö±Þ
-            if(driver != null)
-            {
-                driver.AddMoney(order.reward);
-            }
-
-            //¿Ï·áµÈ ÁÖ¹® Á¦°Å
-
-            currentOrders.Remove(order);
-            orderEvents.OnOrderCompleted?.Invoke(order);
-        }
     }
 
-    void ExpireOrder(DeliveryOrder order)                    //ÁÖ¹® Ãë¼Ò ¼Ò¸ê
+    void PickupOrder(DeliveryOrder order)                       //ï¿½È¾ï¿½ ï¿½Ô¼ï¿½ 
+    {
+        order.state = OrderState.PickedUp;
+        orderEvents.OnOrderPickedUp?.Invoke(order);
+    }
+
+    void CompleteOrder(DeliveryOrder order)                      //ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½Ô¼ï¿½ 
+    {
+        order.state = OrderState.Completed;
+        completedOrders++;
+
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        if(driver != null)
+        {
+            driver.AddMoney(order.reward);
+        }
+
+        //ï¿½Ï·ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
+        currentOrders.Remove(order);
+        orderEvents.OnOrderCompleted?.Invoke(order);
+    }
+
+    void ExpireOrder(DeliveryOrder order)                       //ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
     {
         order.state = OrderState.Expired;
         expiredOrders++;
@@ -113,8 +124,8 @@ public class DeliveryOrderSystem : MonoBehaviour
         orderEvents.OnOrderExpired?.Invoke(order);
     }
 
-    //UI Á¤º¸ Á¦°ø
-    public List<DeliveryOrder> GetDeliveryOrders()
+    //UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    public List<DeliveryOrder> GetCurrentOrders()
     {
         return new List<DeliveryOrder>(currentOrders);
     }
@@ -127,5 +138,134 @@ public class DeliveryOrderSystem : MonoBehaviour
             if (order.state == OrderState.WaitingPickup) count++;
         }
         return count;
+    }
+
+    public int GetDeliveryWaitingCount()
+    {
+        int count = 0;
+        foreach (DeliveryOrder order in currentOrders)
+        {
+            if (order.state == OrderState.PickedUp) count++;
+        }
+        return count;
+    }
+
+    
+    DeliveryOrder FindOrderForPickup(Building restaurant)   //ï¿½Ö¹ï¿½ Ã£ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½ 
+    {
+        foreach (DeliveryOrder order in currentOrders)
+        {
+            if(order.restaurantBuilding == restaurant && order.state == OrderState.WaitingPickup)
+            {
+                return order;
+            }
+        }
+
+        return null;
+    }
+
+    DeliveryOrder FindOrderForDelivery(Building customer)   //ï¿½Ö¹ï¿½ Ã£ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½ 
+    {
+        foreach (DeliveryOrder order in currentOrders)
+        {
+            if (order.customerBuilding == customer && order.state == OrderState.PickedUp)
+            {
+                return order;
+            }
+        }
+
+        return null;
+    }
+
+  
+    public void OnDriverEnteredRestaurant(Building restaurant)
+    {
+        DeliveryOrder orderToPickup = FindOrderForPickup(restaurant);
+
+        if(orderToPickup != null)
+        {
+            PickupOrder(orderToPickup);
+        }
+    }
+
+    public void OnDriverEnteredCustorm(Building customer)
+    {
+        DeliveryOrder orderToDeliver = FindOrderForDelivery(customer);
+
+        if(orderToDeliver  != null)
+        {
+            CompleteOrder(orderToDeliver);
+        }
+    }
+
+    IEnumerator GenerateInitialOrders()
+    {
+        yield return new WaitForSeconds(1f);
+
+        //ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ 3ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
+        for(int i = 0; i < 3; i++)
+        {
+            CreateNewOrder();
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    IEnumerator orderGenerator()
+    {
+        while(true)
+        {
+            yield return new WaitForSeconds(ordergenrateInterval);
+
+            if(currentOrders.Count < maxActiveOrders)
+            {
+                CreateNewOrder();
+            }
+        }
+    }
+
+    IEnumerator ExpiredOrderChecker()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(5f);
+            List<DeliveryOrder> expiredOrders = new List<DeliveryOrder>();
+
+            foreach (DeliveryOrder order in currentOrders)
+            {
+                if(order.IsExpired() && order.state != OrderState.Completed)
+                {
+                    expiredOrders.Add(order);
+                }
+            }
+
+            foreach (DeliveryOrder expired in expiredOrders)
+            {
+                ExpireOrder(expired);
+            }
+        }
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.BeginArea(new Rect(10, 10, 400, 1300));
+
+        GUILayout.Label("=== ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ ===");
+        GUILayout.Label($"È°ï¿½ï¿½ ï¿½Ö¹ï¿½: {currentOrders.Count}ï¿½ï¿½");
+        GUILayout.Label($"ï¿½È¾ï¿½ ï¿½ï¿½ï¿½: {GetPickWaitingCount()}ï¿½ï¿½");
+        GUILayout.Label($"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½: {GetDeliveryWaitingCount()}ï¿½ï¿½");
+        GUILayout.Label($"ï¿½Ï·ï¿½ : {completedOrders}ï¿½ï¿½ | ï¿½ï¿½ï¿½ï¿½: {expiredOrders}");
+
+        GUILayout.Space(10);
+
+        foreach (DeliveryOrder order in currentOrders)
+        {
+            string status = order.state == OrderState.WaitingPickup ? "ï¿½È¾ï¿½ï¿½ï¿½ï¿½" : "ï¿½ï¿½Þ´ï¿½ï¿½";
+            float timeLeft = order.GetRemainingTime();
+
+            GUILayout.Label($"#{order.orderId}:{order.restaurantName} -> {order.customerName}");
+            GUILayout.Label($" {status} | {timeLeft:F0} ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½");
+        }
+
+        GUILayout.EndArea();
     }
 }

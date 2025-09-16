@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-//°£´ÜÇÑ ¹è´Þ ÁÖ¹®
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½
 [System.Serializable]
-public class DeliveryOrder : MonoBehaviour
+public class DeliveryOrder
 {
-    public int orderld;
+    public int orderId;
     public string restaurantName;
     public string customerName;
     public Building restaurantBuilding;
@@ -17,28 +17,28 @@ public class DeliveryOrder : MonoBehaviour
     public float reward;
     public OrderState state;
 
-    //»ý¼ºÀÚ
-    public DeliveryOrder(int id, Building restaurant, Building customer , float rewardAmount)
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+    public DeliveryOrder(int id, Building restaurant,  Building customer , float rewardAmount)
     {
-        orderld = id;
+        orderId = id;
         restaurantBuilding = restaurant;
         customerBuilding = customer;
         restaurantName = restaurant.buildingName;
         customerName = customer.buildingName;
         orderTime = Time.time;
-        timeLimit = Random.Range(60f, 120f);               //1~2ºÐ Á¦ÇÑ
+        timeLimit = Random.Range(60f, 120f);            //1~2 ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         reward = rewardAmount;
         state = OrderState.WaitingPickup;
     }
 
     public float GetRemainingTime()
     {
-        return Mathf.Max(0f, timeLimit - (Time.time - orderTime));             //³²Àº ½Ã°£ ¸®ÅÏ
+        return Mathf.Max(0f, timeLimit - (Time.time - orderTime));              //ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ 
     }
 
-    public bool IsExpired()
+    public bool IsExpired()                                                     //ï¿½Ö¹ï¿½ ï¿½Ò¸ï¿½
     {
         return GetRemainingTime() <= 0f;
     }
-}
 
+}

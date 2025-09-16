@@ -1,11 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public enum OrderState
 {
-    WaitingPickup,            //ÇÈ¾÷ ´ë±â Áß
-    PickedUp,                 //ÇÈ¾÷ ¿Ï·á , ¹è´Þ ´ë±â
-    Completed,                //¹è´Þ ¿Ï·á
-    Expired                   //½Ã°£ ÃÊ°ú
+    WaitingPickup,              //ï¿½È¾ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½
+    PickedUp,                   //ï¿½È¾ï¿½ ï¿½Ï·ï¿½ , ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+    Completed,                  //ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½
+    Expired                     //ï¿½Ã°ï¿½ ï¿½Ê°ï¿½
 }

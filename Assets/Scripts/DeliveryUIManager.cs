@@ -5,13 +5,13 @@ using UnityEngine.UI;
 
 public class DeliveryUIManager : MonoBehaviour
 {
-    [Header("UI ¿ä¼Ò")]
+    [Header("UI ï¿½ï¿½ï¿½")]
     public Text statusText;
     public Text messageText;
     public Slider batterySlider;
     public Image batteryFill;
 
-    [Header("°ÔÀÓ ¿ÀºêÁ§Æ®")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®")]
     public DeliveryDriver driver;
 
     // Start is called before the first frame update
@@ -19,7 +19,7 @@ public class DeliveryUIManager : MonoBehaviour
     {
         if(driver != null)
         {
-            //Event ±¸µ¶
+            //Event ï¿½ï¿½ï¿½ï¿½
             driver.driverEvents.OnMoneyChanged.AddListener(UpdateMoney);
             driver.driverEvents.OnBatteryChanged.AddListener(UpdateBattery);
             driver.driverEvents.OnDeliveryCountChanged.AddListener(UpdateDeliveryCount);
@@ -42,7 +42,7 @@ public class DeliveryUIManager : MonoBehaviour
         }
     }
 
-    void ShowMessage(string message, Color color)                   //¸Þ¼¼Áö Ç¥½Ã ÇÔ¼ö 
+    void ShowMessage(string message, Color color)                   //ï¿½Þ¼ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½Ô¼ï¿½ 
     {
         if(messageText != null)
         {
@@ -52,7 +52,7 @@ public class DeliveryUIManager : MonoBehaviour
         }
     }
 
-    IEnumerator ClearMessageAgterDelay(float delay)                 //ÀÏÁ¤ ½Ã°£ Áö³­ ÈÄ »ç¶óÁø´Ù. 
+    IEnumerator ClearMessageAgterDelay(float delay)                 //ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. 
     {
         yield return new WaitForSeconds(delay);
         if(messageText != null)
@@ -64,7 +64,7 @@ public class DeliveryUIManager : MonoBehaviour
 
     void UpdateMoney(float money)
     {
-        ShowMessage($"µ· : {money} ¿ø" , Color.green);
+        ShowMessage($"ï¿½ï¿½ : {money} ï¿½ï¿½" , Color.green);
     }
 
     void UpdateBattery(float battery)
@@ -87,32 +87,32 @@ public class DeliveryUIManager : MonoBehaviour
 
     void UpdateDeliveryCount(int count)
     {
-        ShowMessage($"¹è´Þ ¿Ï·á : {count}°Ç", Color.blue);
+        ShowMessage($"ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ : {count}ï¿½ï¿½", Color.blue);
     }
 
     void OnMoveStarted()
     {
-        ShowMessage("ÀÌµ¿ ½ÃÀÛ", Color.cyan);
+        ShowMessage("ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½", Color.cyan);
     }
 
     void OnMoveStopped()
     {
-        ShowMessage("ÀÌµ¿ Á¤Áö" , Color.gray);
+        ShowMessage("ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½" , Color.gray);
     }
 
     void OnLowBattery()
     {
-        ShowMessage("¹èÅÍ¸® ºÎÁ·!", Color.red);
+        ShowMessage("ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½!", Color.red);
     }
 
     void OnBatteryEmpty()
     {
-        ShowMessage("¹èÅÍ¸® ¹æÀü!", Color.red);
+        ShowMessage("ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½!", Color.red);
     }
 
     void OnDeliveryCompleted()
     {
-        ShowMessage("¹è´Þ ¿Ï·á!", Color.green);
+        ShowMessage("ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½!", Color.green);
     }
 
     void UpdateUI()
@@ -125,11 +125,11 @@ public class DeliveryUIManager : MonoBehaviour
         }
     }
 
-    void OnDestroy()        //°´Ã¼°¡ ÆÄ±« µÉ¶§ ½ÃÁ¡
+    void OnDestroy()        //ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ä±ï¿½ ï¿½É¶ï¿½ ï¿½ï¿½ï¿½ï¿½
     {
         if(driver != null)
         {
-            //Event ±¸µ¶ ÇØÁ¦
+            //Event ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             driver.driverEvents.OnMoneyChanged.RemoveListener(UpdateMoney);
             driver.driverEvents.OnBatteryChanged.RemoveListener(UpdateBattery);
             driver.driverEvents.OnDeliveryCountChanged.RemoveListener(UpdateDeliveryCount);

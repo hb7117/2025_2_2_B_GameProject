@@ -5,9 +5,9 @@ using UnityEngine.Events;
 
 public class Building : MonoBehaviour
 {
-    [Header("°Ç¹° Á¤º¸")]
+    [Header("ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½")]
     public BuildingType BuildingType;
-    public string buildingName = "°Ç¹°";
+    public string buildingName = "ï¿½Ç¹ï¿½";
 
     [System.Serializable]
     public class BuildingEvents
@@ -19,10 +19,14 @@ public class Building : MonoBehaviour
 
     public BuildingEvents buildingEvents;
 
+    private DeliveryOrderSystem orderSystem;
+
     // Start is called before the first frame update
     void Start()
     {
         SetupBuilding();
+        orderSystem = FindObjectOfType<DeliveryOrderSystem>();
+        CreateNameTag();
     }
     void SetupBuilding()
     {
@@ -34,17 +38,14 @@ public class Building : MonoBehaviour
             {
                 case BuildingType.Restaurant:
                     mat.color = Color.red;
-                    buildingName = "À½½ÄÁ¡";
                     break;
 
                 case BuildingType.Customer:
                     mat.color = Color.green;
-                    buildingName = "°í°´ Áý";
                     break;
 
                 case BuildingType.ChargingStation:
                     mat.color = Color.yellow;
-                    buildingName = "ÃæÀü¼Ò";
                     break;
             }
         }
@@ -68,8 +69,25 @@ public class Building : MonoBehaviour
         if (driver != null)
         {
             buildingEvents.OnDriverExited?.Invoke(buildingName);
-            Debug.Log($"{buildingName} À» ¶°³µ½À´Ï´Ù.");
+            Debug.Log($"{buildingName} ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
         }
+    }
+
+    void CreateNameTag()
+    {
+        //ï¿½Ç¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½
+        GameObject nameTag = new GameObject("NameTag");
+        nameTag.transform.SetParent(transform);
+        nameTag.transform.localPosition = Vector3.up * 1.5f;
+
+        TextMesh textMesh = nameTag.AddComponent<TextMesh>();
+        textMesh.text = buildingName;
+        textMesh.characterSize = 0.2f;
+        textMesh.anchor = TextAnchor.MiddleCenter;
+        textMesh.color = Color.white;
+        textMesh.fontSize = 20;
+
+        nameTag.AddComponent<Bildboard>();
     }
 
     void HandleDriverService(DeliveryDriver driver)
@@ -77,18 +95,30 @@ public class Building : MonoBehaviour
         switch (BuildingType)
         {
             case BuildingType.Restaurant:
-                Debug.Log($"{buildingName} ¿¡¼­ À½½ÄÀ» ÇÈ¾÷ Çß½À´Ï´Ù.");
+                if(orderSystem != null)
+                {
+                    orderSystem.OnDriverEnteredRestaurant(this);
+                }           
                 break;
 
             case BuildingType.Customer:
-                Debug.Log($"{buildingName} ¿¡¼­ ¹è´Þ ¿Ï·á");
-                driver.CompleteDelivery();
+                if (orderSystem != null)
+                {
+                    orderSystem.OnDriverEnteredCustorm(this);
+                }
+                else
+                {
+                    driver.CompleteDelivery();
+                }
+                    
                 break;
 
             case BuildingType.ChargingStation:
-                Debug.Log($"{buildingName} ¿¡¼­ º£ÅÍ¸®¸¦ ÃæÀü Çß½À´Ï´Ù. ");
+                
                 driver.ChargeBattery();
                 break;
         }
+
+        buildingEvents.OnServiceUsed?.Invoke(BuildingType);
     }
 }
